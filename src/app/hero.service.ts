@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Hero } from './hero';
-import { Observable, of } from 'rxjs';
-import { MessageService } from './message.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+import { Observable, of } from 'rxjs';
 import { catchError, tap } from "rxjs/operators";
+
+import { Hero } from './hero';
+import { MessageService } from './message.service';
+
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +20,21 @@ export class HeroService {
   constructor(
     private http: HttpClient,
     private messageService: MessageService) { }
+
+  /**
+   * GET heroes whose name contains search term
+   */
+  searchHeroes(term: string): Observable<Hero[]> {
+    if (!term.trim()) {
+      // if not search term, return empty hero array;
+      return of([]);
+    }
+    return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`)
+      .pipe(
+        tap(_ => this.log(`found heroes matching "${term}"`)),
+        catchError(this.handleError<Hero[]>('searchHeroes', []))
+      );
+  }
 
   /** GET heroes from the server */
   getHeroes(): Observable<Hero[]> {
